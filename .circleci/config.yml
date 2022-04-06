@@ -1,0 +1,23 @@
+version: 2.1
+
+jobs:
+  build:
+    docker:
+      - image: alecashford/at-build-env:latest
+    steps:
+      - checkout
+      - setup_remote_docker
+      - run:
+          name: "Build and Deploy"
+          command: |
+            # If merging to main, deploy to prod (args are namespace and env, respectively)
+            if [[ "${CIRCLE_BRANCH}" == "main" || "${CIRCLE_BRANCH}" == "circleci-project-setup" ]]; then
+              ./circleci-deploy.sh alec-ashford-prod
+            elif [[ "${CIRCLE_BRANCH}" == "develop" ]]; then
+              ./circleci-deploy.sh alec-ashford-dev
+            fi
+
+workflows:
+  build-deploy-workflow:
+    jobs:
+      - build
