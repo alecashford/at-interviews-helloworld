@@ -9,6 +9,7 @@ jobs:
       - image: docker:20.10.14-git
     steps:
       - checkout
+      - setup_remote_docker
       - run:
           name: Install dependencies
           command: |
