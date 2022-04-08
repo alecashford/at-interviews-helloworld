@@ -27,7 +27,6 @@ jobs:
             echo commit ID is $COMMIT_ID
 
             aws ecr get-login-password \
-              --profile at-interviews \
               --region us-west-2 \
               | docker login \
               --username AWS \
