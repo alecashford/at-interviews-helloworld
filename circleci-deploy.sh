@@ -4,24 +4,24 @@ set -eox pipefail
 # You can pick a unique single-word namespace by passing it as an argument
 # to this script, or it'll try to make one for you from your local
 # machine's username
-${AWS_ACCOUNT_ID}="310228935478"
+# ${AWS_ACCOUNT_ID}="310228935478"
 
-# This confirms we're pointing at the appropriate AWS account before trying
-# to do anything
-CURRENT_AWS_TARGET=$(aws --profile at-interviews \
-    sts get-caller-identity \
-    | grep Account \
-    | awk -F: '{print $2}' \
-    | tr -d \"\,\ \
-    )
+# # This confirms we're pointing at the appropriate AWS account before trying
+# # to do anything
+# CURRENT_AWS_TARGET=$(aws --profile at-interviews \
+#     sts get-caller-identity \
+#     | grep Account \
+#     | awk -F: '{print $2}' \
+#     | tr -d \"\,\ \
+#     )
 
-if [[ ! "$CURRENT_AWS_TARGET" = "${AWS_ACCOUNT_ID}" ]]; then
-    echo "We don't appear to be authenticating to the Alltrails AWS account"
-    echo "Please double-check your AWS access key and try again"
-    echo
-    echo "Expected AWS account number of ${AWS_ACCOUNT_ID}, got $CURRENT_AWS_TARGET instead" 
-    exit 1
-fi
+# if [[ ! "$CURRENT_AWS_TARGET" = "${AWS_ACCOUNT_ID}" ]]; then
+#     echo "We don't appear to be authenticating to the Alltrails AWS account"
+#     echo "Please double-check your AWS access key and try again"
+#     echo
+#     echo "Expected AWS account number of ${AWS_ACCOUNT_ID}, got $CURRENT_AWS_TARGET instead" 
+#     exit 1
+# fi
 
 # Let's try to set a unique-ish namespace for local testing
 if [ $# -eq 0 ]; then
