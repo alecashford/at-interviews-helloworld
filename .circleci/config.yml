@@ -20,7 +20,7 @@ jobs:
           #     awscli
       - run:
           name: "Docker build"
-          command: ./circleci-deploy.sh
+          command: pwd && ls -la && ./circleci-deploy.sh
           # command: |
           #   # Set unique-ish namespace
           #   NAMESPACE=$(whoami)
