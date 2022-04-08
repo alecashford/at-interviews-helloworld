@@ -25,13 +25,7 @@ jobs:
             export COMMIT_ID=$(git rev-parse --verify --short HEAD)
             echo commit ID is $COMMIT_ID
 
-            aws ecr get-login-password \
-              --profile at-interviews \
-              --region us-west-2 \
-              | docker login \
-              --username AWS \
-              --password-stdin \
-              ${AWS_ACCOUNT_ID}.dkr.ecr.us-west-2.amazonaws.com
+            $(aws ecr get-login --region us-west-2 --no-include-email)
             
               docker build \
                 --no-cache \
