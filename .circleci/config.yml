@@ -6,7 +6,7 @@ jobs:
   build:
     docker:
       # - image: cimg/base:stable
-      - image: docker:20.10.14-git
+      - image: docker:17.05.0-ce-git
     steps:
       - checkout
       - run:
