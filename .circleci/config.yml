@@ -6,16 +6,17 @@ jobs:
   build:
     docker:
       # - image: cimg/base:stable
-      - image: docker:17.05.0-ce-git
+      - image: docker:20.10.14-git
     steps:
       - checkout
       - run:
           name: Install dependencies
           command: |
             apk add --no-cache \
-              py-pip=9.0.0-r1
-            pip install \
-              awscli==1.11.76
+              python3 \
+              py3-pip
+            pip3 install \
+              awscli
       - run:
           name: "Docker build"
           command: |
