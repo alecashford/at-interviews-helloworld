@@ -13,10 +13,14 @@ jobs:
           name: Install dependencies
           command: |
             apk add --no-cache \
-              python3 \
-              py3-pip
-            pip3 install \
-              awscliv2
+              py-pip=9.0.0-r1
+            pip install \
+              awscli==1.11.76
+            # apk add --no-cache \
+            #   python3 \
+            #   py3-pip
+            # pip3 install \
+            #   awscliv2
       - run:
           name: "Docker build"
           command: |
