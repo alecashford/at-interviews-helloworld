@@ -1,5 +1,5 @@
 #!/bin/bash
-set -eo pipefail
+set -eox pipefail
 
 # You can pick a unique single-word namespace by passing it as an argument
 # to this script, or it'll try to make one for you from your local
@@ -40,7 +40,9 @@ fi
 
 # Let's try to set a unique-ish namespace for local testing
 if [ $# -eq 0 ]; then
-    NAMESPACE=$(whoami)
+    # namespaces must consist of lower case alphanumeric characters or '-', and must startand end with an alphanumeric
+    # character (e.g. 'my-name',  or '123-abc', regex used for validation is '[a-z0-9]([-a-z0-9]*[a-z0-9])?')
+    NAMESPACE=$(echo whoami | sed "s/[^[:alnum:]-]//g")
 else
     NAMESPACE=$1
 fi

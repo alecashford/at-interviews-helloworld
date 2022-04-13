@@ -4,7 +4,7 @@ set -eox pipefail
 # You can pick a unique single-word namespace by passing it as an argument
 # to this script, or it'll try to make one for you from your local
 # machine's username
-# ${AWS_ACCOUNT_ID}="310228935478"
+AWS_ACCOUNT_ID="310228935478"
 
 # # This confirms we're pointing at the appropriate AWS account before trying
 # # to do anything

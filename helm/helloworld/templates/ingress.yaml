@@ -6,7 +6,7 @@
   {{- $_ := set .Values.ingress.annotations "kubernetes.io/ingress.class" .Values.ingress.className}}
   {{- end }}
 {{- end }}
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: {{ $fullName }}
@@ -34,14 +34,16 @@ spec:
     {{- range .Values.ingress.hosts }}
     - http:
         paths:
-          {{- range .paths }}
-          - path: {{ .path }}
-            {{- if and .pathType (semverCompare ">=1.18-0" $.Capabilities.KubeVersion.GitVersion) }}
-            pathType: {{ .pathType }}
-            {{- end }}
+          # {{- range .paths }}
+          - path: /
+          # - path: {{ .path }}
+            pathType: {{ .pathType | default "Prefix" }}
+            # pathType: {{ .pathType }}
             backend:
-              serviceName: {{ $fullName }}
-              servicePort: {{ $svcPort }}
+              service:
+                name: {{ $fullName }}
+                port:
+                  number: {{ $svcPort }}
           {{- end }}
     {{- end }}
 {{- end }}
