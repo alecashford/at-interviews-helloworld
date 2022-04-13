@@ -11,8 +11,9 @@ jobs:
           name: "Build and Deploy"
           command: |
             # If merging to main, deploy to prod (args are namespace and env, respectively)
-            if [[ "${CIRCLE_BRANCH}" == "main" || "${CIRCLE_BRANCH}" == "circleci-project-setup" ]]; then
+            if [[ "${CIRCLE_BRANCH}" == "main" ]]; then
               ./circleci-deploy.sh alec-ashford-prod
+            # If merging to develop, deploy to dev
             elif [[ "${CIRCLE_BRANCH}" == "develop" ]]; then
               ./circleci-deploy.sh alec-ashford-dev
             fi

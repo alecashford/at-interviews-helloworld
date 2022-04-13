@@ -1,11 +1,13 @@
 # Alec's Homework
 Welcome!  If you're reading this readme, in all likelihood you are evaluating me (Alec) for the Build/Release Engineer role at AllTrails. This is my homework assignment deliverable, which I'd like to walk you through now.
 
-The tools I use in my current role for for build pipelines include a mixture of AWS CodeBuild and Jenkins; however since AllTrails uses it, I took this as an opportunity to learn and try out CircleCI. The biggest challenge for me during this assignment, therefore, was learning the new tool. Fortunately, I found it user-friendly and pretty similar to other tools I am familiar with.
+## Implementation Summary
 
-As a best-practice, I try to ensure that builds build the same way regardless of where they are run, be that your local machine or a CI host. CircleCI accommodated this design pattern beautifully, since it sets up a workspace for each run inside a fresh Docker container (the image for which you can define yourself!). As a result, I opted to develop a build env image (hosted on Dockerhub, [here](https://hub.docker.com/repository/docker/alecashford/at-build-env)), which I used both for local builds and for the build and deploy in CircleCI.
+The tools I use in my current role for build pipelines include a mixture of AWS CodeBuild and Jenkins; however since AllTrails uses it, I took this as an opportunity to learn and try out CircleCI. The first challenge for me during this assignment, therefore, was learning this new tool. Fortunately, I found it user-friendly and pretty similar to other tools I am familiar with. It was also EXTREMELY FAST, so big thumbs up from me who's used to waiting a few minutes for CodeBuild instances to even be provisioned.
 
-The build env image is based on CentOS and comes with all of the necessary dependencies to build and deploy this application pre-installed (I am including the Dockerfile in this repo, Build-Env-Dockerfile). Note that this implementation offers a possible solution to devs developing and building on M1 hardware. To build locally inside this dedicated build container, simply do the following:
+As a best-practice, I try to ensure that builds build the same way regardless of where the build scripts are run, be that your local machine or a CI host. CircleCI accommodated this design pattern beautifully, since it sets up a workspace for each run inside a fresh Docker container (the image of which you can define yourself!). To leverage this, I opted to develop a build env image (hosted on Dockerhub, [here](https://hub.docker.com/repository/docker/alecashford/at-build-env)), which I used both for local testing and the build and deploy in CircleCI.
+
+The build env image is based on CentOS and comes with all of the necessary dependencies to build and deploy this app pre-installed (I am including the Dockerfile in this repo, as `Build-Env-Dockerfile`). Note that this implementation offers a possible solution to devs developing and building locally on M1 hardware. To build locally inside this dedicated build container, simply do the following:
 
 ```
 # Pull the latest build env image from Dockerhub...
@@ -24,8 +26,8 @@ $ docker run \
 # You're inside the build env container now...run local-deploy.sh, it should Just Work™
 [root@294421fd81f9 at-interviews-helloworld]# ./local-deploy.sh
 ```
-
-Another challenge I ran into initially was discovering that my user had initially not been set up with the appropriate permissions to deploy to the test Kubernetes cluster. My first clue that something was wrong came up shortly after I forked the repo and went through the initial local setup and run of the local-deploy.sh script, upon which I received this error:
+## Other Challenges
+Another challenge I ran into soon after beginning was discovering that my user had not been set up with the appropriate permissions to deploy to the test Kubernetes cluster. After I forked the repo and went through the initial setup, I was pretty sure something was wrong when I kept receiving this error:
 
 `Error: Kubernetes cluster unreachable: the server has asked for the client to provide credentials`
 
@@ -38,19 +40,21 @@ error: You must be logged in to the server (Unauthorized)
 
 That led me to [this page](https://aws.amazon.com/premiumsupport/knowledge-center/eks-api-server-unauthorized-error/) from the EKS docs and [this StackOverflow](https://stackoverflow.com/questions/50791303/kubectl-error-you-must-be-logged-in-to-the-server-unauthorized-when-accessing), which said that initially, only the creator of an EKS cluster has the permissions to make calls to the Kubernetes API server using kubectl. Subsequent users must be explicitly added to the ConfigMap.
 
-As a Kubernetes non-expert (to put it lightly), I wasn't sure whether I was doing something wrong, or if there was an underlying problem, but when I received identical errors in my dockerized build env and on CircleCI, that reinforced my theory. So, I reached back out to Alaina to confirm whether my IAM user has the needed permissions to interact with the API server, after which I was unblocked.
+As a Kubernetes non-expert (to put it lightly), I wasn't sure whether I was doing something wrong, or if there was an underlying problem, but when I received identical errors in my dockerized build env and on CircleCI, that reinforced my theory. So, I reached back out to Alaina to confirm whether my IAM user had the needed permissions to interact with the API server, after which she was able to triage the issue internally for a fix, and I was unblocked.
 
-Another issue I ran into once the permissions issue was resolved was that there seemed like there was a mis-match between the syntax in some of the helm templates and the version of Kubernetes that the test cluster was set to (1.22). Implementing the suggestions in [this article](https://www.civo.com/learn/migrating-your-ingresses-in-k3s-1-20) remedied my issue and allowed me to finish deploying, though I can't speak to the advisability of that solution.
+Another issue I ran into once the permissions issue was resolved was that there seemed like there was a mis-match between the syntax in the Helm templates and the version of Kubernetes that the test cluster was set to (1.22). Implementing some of the suggestions in [this article](https://www.civo.com/learn/migrating-your-ingresses-in-k3s-1-20) remedied my issue and allowed me to finish deploying, though I can't speak to the advisability of that solution.
 
-The third and final challenge, which I ultimately did not solve since it seemed outside the scope of the challenge, was locating the correct address to view the results of my deploys. I tried the `describe ingress` commands from the script output, but the address field was blank. I surmised that this may have something to do with the update to the latest K8s version, or another infrastructure misconfiguration.
+One thing I can speak to though is that messing with the ingress.yaml file as I did does appear to have had downstream effects. This third and final challenge, which I ultimately did not solve since it seemed outside the scope of the challenge, was locating the correct address to view the results of my deploys. I tried the `describe ingress` commands from the script output, but the address field was always blank. I surmise that this may have something to do with the update to the latest K8s version, or another infrastructure misconfiguration. If I were trying to diagnose and solve this issue in a real-life setting, I would recommend first trying to deploy to a cluster versioned to Kubernetes 1.21 or below.
 
 ## How would I modify my pipeline to accommodate different environments?
 
-The answer to this depends on the git branching model and development cycle, but for simplicity's sake I'll assume the use of a [git-flow-like](https://nvie.com/posts/a-successful-git-branching-model/) workflow with a develop and master branch.
+The answer to this depends on the git branching model and development cycle design, but for simplicity's sake I'll assume the use of a [git-flow-like](https://nvie.com/posts/a-successful-git-branching-model/) workflow with a develop and master branch.
 
 This model works particularly well if you have a limited number of (or only one) test environments. In a nutshell, we would add logic to the .circleci/config.yml file to check which branch the commit that triggered the build was being merged into, and use that to control which env to deploy the build to. Merging to develop would automatically deploy the build to dev, merging to master would automatically deploy the build to prod.
 
-Another model to look at would be the "trunk based development" paradigm wherein we only have one permanent branch (master), which is being continuously merged to and deployed to prod. There are some nice features of this model, but we would need more test envs than there were specified in the prompt, potentially one for each PR, to ensure that each commit, when merged, was fully qualified and tested.
+This was ultimately the pattern I chose to demo, and you can see this logic in my circleci config.yml. In my implementation I chose to use namespaces for the different environments (e.g. prod, dev) instead of whole different clusters, since I had only the one cluster available to me. This seems ok based on some research, but as a K8s newbie, I'm not certain what the ideal practice here is.
+
+Another model to look at would be the "trunk based development" paradigm wherein we only have one permanent branch (master/main), which is being continuously merged to and deployed to prod. There are some nice features of this model, but we would need more test envs than there were specified in the prompt, potentially one for each PR, to ensure that each commit, when merged, was fully qualified and tested.
 
 # Hello World Sample App
 Welcome!  If you're cloning this repo, in all likelihood you are starting the QA/Build/Release Engineer Homework assignment.  We're so happy that you've made it this far in the process!  By now you should have received a message from HR with login credentials to our Candidate AWS Environment, and the specifics of the Homework Assignment.  The document you're reading now (this README) is intended to help get you into the AWS environment, and that your account has all the permissions it needs to test locally, and actually complete the assignment.  
