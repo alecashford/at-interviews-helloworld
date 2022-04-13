@@ -1,51 +1,21 @@
 version: 2.1
 
-# orbs:
-#   aws-ecr: circleci/aws-ecr@x.y.z
 jobs:
   build:
     docker:
-      # - image: cimg/base:stable
       - image: alecashford/at-build-env:latest
     steps:
       - checkout
       - setup_remote_docker
-      # - run:
-      #     name: Install dependencies
-          # command: |
-          #   apk add --no-cache \
-          #     python3 \
-          #     py3-pip
-          #   pip3 install \
-          #     awscli
       - run:
-          name: "Docker build"
-          command: pwd && ls -la && ./circleci-deploy.sh
-          # command: |
-          #   # Set unique-ish namespace
-          #   NAMESPACE=$(whoami)
-
-          #   export COMMIT_ID=$(git rev-parse --verify --short HEAD)
-          #   echo commit ID is $COMMIT_ID
-
-          #   aws ecr get-login-password \
-          #     --region us-west-2 \
-          #     | docker login \
-          #     --username AWS \
-          #     --password-stdin \
-          #     ${AWS_ACCOUNT_ID}.dkr.ecr.us-west-2.amazonaws.com
-            
-          #     docker build \
-          #       --no-cache \
-          #       --build-arg GIT_COMMIT=$COMMIT_ID \
-          #       -t helloworld:$COMMIT_ID \
-          #       -t ${AWS_ACCOUNT_ID}.dkr.ecr.us-west-2.amazonaws.com/helloworld:${COMMIT_ID} \
-          #       .
-              
-          #     docker push \
-          #       ${AWS_ACCOUNT_ID}.dkr.ecr.us-west-2.amazonaws.com/helloworld:${COMMIT_ID}
-
-
+          name: "Build and Deploy"
+          command: |
+            # If merging to main, deploy to prod (args are namespace and env, respectively)
+            if [ "${CIRCLE_BRANCH}" == "main" || "${CIRCLE_BRANCH}" == "circleci-project-setup" ]; then
+              ./circleci-deploy.sh alec-ashford-prod
+            elif [ "${CIRCLE_BRANCH}" == "develop" ]; then
+              ./circleci-deploy.sh alec-ashford-dev
+            fi
 
 workflows:
   build-deploy-workflow:
